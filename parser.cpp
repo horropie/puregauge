@@ -14,7 +14,7 @@ void setlattice(int (&dimv)[3]){
         std::cin.ignore(256,'\n');
         std::cin >> isinteger;
     }
-    std::cin >> dimv[0];
+    isinteger >> dimv[0];
 
 	std::cout << "What is the size of the lattice in y-direction?" << std::endl;
     std::cin >> isinteger;
@@ -24,7 +24,7 @@ void setlattice(int (&dimv)[3]){
         std::cin.ignore(256,'\n');
         std::cin >> isinteger;
     }
-	std::cin >> dimv[1];
+	isinteger >> dimv[1];
 
 	std::cout << "What is the size of the lattice in z-direction?" << std::endl;
     std::cin >> isinteger;
@@ -34,7 +34,7 @@ void setlattice(int (&dimv)[3]){
         std::cin.ignore(256,'\n');
         std::cin >> isinteger;
     }
-	std::cin >> dimv[2];
+	isinteger >> dimv[2];
 
 }
 
