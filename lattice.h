@@ -2,6 +2,7 @@
 #define LATTICE_H
 
 #include <eigen3/Eigen/Dense>
+#include "parser.cpp"
 
 using namespace Eigen;
 

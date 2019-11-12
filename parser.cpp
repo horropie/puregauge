@@ -39,6 +39,7 @@ void setlattice(int (&dimv)[3]){
 
 }
 
+/**
 int main() {
 	int dimv[3];
 
@@ -46,5 +47,4 @@ int main() {
 
 	return 0;
 }
-
-
+**/

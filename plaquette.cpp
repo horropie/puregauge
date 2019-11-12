@@ -8,7 +8,6 @@
 #include <complex>
 /**#include <boost/math/constants/constants.hpp>**/
 #include <eigen3/Eigen/Dense>
-#include "lattice.h"
 #include "lattice.cpp"
 using namespace Eigen;
 
@@ -38,8 +37,13 @@ double plaquette(lattice l){
 int main()
 {
 
+    /** Initalise the lattice dimenions. **/
+    int dimv[3];
+    setlattice(dimv);
+
     lattice l;
-    double x =plaquette(l);
+    double x = plaquette(l);
+    std::cout << x << std::endl;
 
     return 0;
 }
