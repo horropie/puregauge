@@ -1,9 +1,9 @@
 #include "lattice.h"
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <random>
 #include <vector>
 #include <complex>
-#include <boost/math/constants/constants.hpp>
+/**#include <boost/math/constants/constants.hpp>**/
 
 using namespace std;
 
@@ -15,10 +15,6 @@ lattice::lattice()
 xdim= sizeof(links)/sizeof(links[0]);
 ydim= sizeof(links[0])/sizeof(links[0][0]);
 zdim= sizeof(links[0][0]);
-
-
-
-
 
      for(int i =0;i<xdim;i++){
              for(int j =0;j<ydim;j++){
