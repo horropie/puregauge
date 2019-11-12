@@ -12,13 +12,14 @@ std::uniform_real_distribution<double> uni_real_distr(0.0,1.0);
 
 lattice::lattice()
 {
+	/** This definition of xdim etc. is obsolete and wrong anyways. **/
 xdim= sizeof(links)/sizeof(links[0]);
 ydim= sizeof(links[0])/sizeof(links[0][0]);
 zdim= sizeof(links[0][0]);
 
-     for(int i =0;i<xdim;i++){
-             for(int j =0;j<ydim;j++){
-                    for(int k=0;k<zdim;k++){
+     for(int i =0;i<2;i++){
+             for(int j =0;j<3;j++){
+                    for(int k=0;k<5;k++){
 
                         links[i][j][k][0]=rand();
                         links[i][j][k][1]=rand();
