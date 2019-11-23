@@ -1,5 +1,6 @@
 #include <iostream>
 #include "lattice.h"
+#include "lattice.cpp"
 #include <Eigen/Dense>
 #include <random>
 #include <vector>
@@ -8,7 +9,7 @@
 #include <fstream>
 using namespace std;
 //definiere Parameter (Anzahl Wdh., Temperatur, Zufallsgenerator)
-static int rep=100;
+static int rep=10;
 double beta= 0.7;
 double N =1.0;
 
@@ -109,18 +110,14 @@ int main()
                          +(test*l.links[(x+1)%l.xdim][y][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][modul(z-1,l.zdim)][0].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2]);
                         neu=temp.trace().real();
                         //Akzeptieren oder ablehnen
-                        if(exp((-beta/N)*(neu-alt))>=1){
-                            l.update(x,y,z,0,test);
-                            plaquette=plaquette-alt+neu;
-                        }
-                        else{
+
                            p=uni_real_dist(Generator);
                            if (exp((-beta/N)*(neu-alt))>=p){
                                 l.update(x,y,z,0,test);
                                 plaquette=plaquette-alt+neu;
 
                            }
-                        }
+
 
                         // Das Gleiche für y
                          test=zuf();
@@ -140,18 +137,14 @@ int main()
                        +(test*l.links[x][(y+1)%l.ydim][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][modul(z-1,l.zdim)][1].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2]);
                         neu=temp.trace().real();
                         //Akzeptieren oder ablehnen
-                        if(exp((-beta/N)*(neu-alt))>=1){
-                            l.update(x,y,z,1,test);
-                            plaquette=plaquette-alt+neu;
-                        }
-                        else{
+
                            p=uni_real_dist(Generator);
                            if (exp((-beta/N)*(neu-alt))>=p){
                                 l.update(x,y,z,1,test);
                                 plaquette=plaquette-alt+neu;
 
                            }
-                        }
+
 
                         // Das Gleiche für z
                          test=zuf();
@@ -171,24 +164,21 @@ int main()
                       +(test*l.links[x][modul(y-1,l.ydim)][(z+1)%l.zdim][1].adjoint()*l.links[x][modul(y-1,l.ydim)][z][2].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1]);
                          neu=temp.trace().real();
                         //Akzeptieren oder ablehnen
-                        if(exp((-beta/N)*(neu-alt))>=1){
-                            l.update(x,y,z,2,test);
-                            plaquette=plaquette-alt+neu;
-                        }
-                        else{
+
                            p=uni_real_dist(Generator);
                            if (exp((-beta/N)*(neu-alt))>=p){
                                 l.update(x,y,z,2,test);
                                 plaquette=plaquette-alt+neu;
 
                            }
-                        }
+
 
 
                     }}}
 
 
 //Messwert speichern
+
  f <<plaquette<< endl;
       }
 f.close();
