@@ -1,8 +1,7 @@
 #ifndef LATTICE_H
 #define LATTICE_H
 
-#include <eigen3/Eigen/Dense>
-#include "parser.cpp"
+#include <Eigen/Dense>
 
 using namespace Eigen;
 
@@ -15,10 +14,10 @@ class lattice
         int zdim;
         double T;
         virtual ~lattice();
-        void update(int xpos, int ypos, int zpos, int direction);
+        void update(int xpos, int ypos, int zpos, int direction,Eigen::Matrix<std::complex<double>,2,2> newMatrix);
         double energy(void);
-        /**double plaquette(int x, int y, int z, int dir);**/
-        Matrix<std::complex<double>,2,2> links[2][3][5][3] ;
+        double plaquette(int x, int y, int z, int dir);
+        Matrix<std::complex<double>,2,2> links[2][3][1][3] ;
 
     protected:
 
