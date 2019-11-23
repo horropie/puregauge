@@ -8,7 +8,7 @@
 #include <fstream>
 using namespace std;
 //definiere Parameter (Anzahl Wdh., Temperatur, Zufallsgenerator)
-static int rep=10;
+static int rep=100;
 double beta= 0.7;
 double N =1.0;
 
@@ -50,6 +50,13 @@ Eigen::Matrix<std::complex<double>,2,2> zuf()
 	randm(1,0)=-conj(randm(0,1));
 	return randm;
 }
+ int modul(int x, int mod){
+ x=x%mod;
+ if(x<0){
+    x=mod+x;
+ }
+ return x;
+ }
 
 
 
@@ -69,7 +76,7 @@ int main()
      for(int x = 0; x < l.xdim; x++){
         for (int y = 0; y < l.ydim; y++){
             for (int z = 0; z < l.zdim; z++){
-                  xyplaquettevalue = l.links[x][y][z][1].adjoint() * l.links[x][(y+1)%l.ydim][z][0].adjoint() * l.links[(x+1)%l.xdim][y][z][1] * l.links[x][y][z][0];
+                  xyplaquettevalue = l.links[x][y][z][1].adjoint() * l.links[x][modul(y+1,l.ydim)][z][0].adjoint() * l.links[(x+1)%l.xdim][y][z][1] * l.links[x][y][z][0];
                   xzplaquettevalue = l.links[x][y][z][2].adjoint() * l.links[x][y][(z+1)%l.zdim][0].adjoint() * l.links[(x+1)%l.xdim][y][z][2] * l.links[x][y][z][0];
                   yzplaquettevalue = l.links[x][y][z][2].adjoint() * l.links[x][y][(z+1)%l.zdim][1].adjoint() * l.links[x][(y+1)%l.ydim][z][2] * l.links[x][y][z][1];
                   plaquette += (xyplaquettevalue.trace().real() +xzplaquettevalue.trace().real()+yzplaquettevalue.trace().real());
@@ -86,16 +93,20 @@ int main()
                         test=zuf();
                         //Berechne die alten (alt) und neuen (neu) Plaquette-Werte
                         // Alte Plaquettes in xy Richtung
-                        temp=(l.links[x][y][z][0]*l.links[(x+1)%l.xdim][y][z][1]*l.links[x][(y+1)%l.ydim][z][0].adjoint()*l.links[x][y][z][1].adjoint())+(l.links[x][y][z][0]*l.links[(x+1)%l.xdim][(y-1)%l.ydim][z][1].adjoint()*l.links[x][(y-1)%l.ydim][z][0].adjoint()*l.links[x][(y-1)%l.ydim][z][1]);
+                        temp=(l.links[x][y][z][0]*l.links[(x+1)%l.xdim][y][z][1]*l.links[x][(y+1)%l.ydim][z][0].adjoint()*l.links[x][y][z][1].adjoint())
+                        +(l.links[x][y][z][0]*l.links[(x+1)%l.xdim][modul(y-1,l.ydim)][z][1].adjoint()*l.links[x][modul(y-1,l.ydim)][z][0].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1]);
                        // Alte Plaquettes in xz
-                        temp+=(l.links[x][y][z][0]*l.links[(x+1)%l.xdim][y][z][2]*l.links[x][y][(z+1)/l.zdim][0].adjoint()*l.links[x][y][z][2].adjoint())+(l.links[x][y][z][0]*l.links[(x+1)%l.xdim][y][(z-1)%l.zdim][2].adjoint()*l.links[x][y][(z-1)%l.zdim][0].adjoint()*l.links[x][y][(z-1)%l.zdim][2]);
+                        temp+=(l.links[x][y][z][0]*l.links[(x+1)%l.xdim][y][z][2]*l.links[x][y][(z+1)%l.zdim][0].adjoint()*l.links[x][y][z][2].adjoint())
+                        +(l.links[x][y][z][0]*l.links[(x+1)%l.xdim][y][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][(z-1)%l.zdim][0].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2]);
 
                         alt=temp.trace().real();
                         //Zu prüfende Plaquettes in xy
-                        temp=(test*l.links[(x+1)%l.xdim][y][z][1]*l.links[x][(y+1)%l.ydim][z][0].adjoint()*l.links[x][y][z][1].adjoint())+(test*l.links[(x+1)%l.xdim][(y-1)%l.ydim][z][1].adjoint()*l.links[x][(y-1)%l.ydim][z][0].adjoint()*l.links[x][(y-1)%l.ydim][z][1]);
+                        temp=(test*l.links[(x+1)%l.xdim][y][z][1]*l.links[x][(y+1)%l.ydim][z][0].adjoint()*l.links[x][y][z][1].adjoint())
+                        +(test*l.links[(x+1)%l.xdim][modul(y-1,l.ydim)][z][1].adjoint()*l.links[x][modul(y-1,l.ydim)][z][0].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1]);
 
                         //zu prüfende in xz
-                         temp+=(test*l.links[(x+1)%l.xdim][y][z][2]*l.links[x][y][(z+1)/l.zdim][0].adjoint()*l.links[x][y][z][2].adjoint())+(test*l.links[(x+1)%l.xdim][y][(z-1)%l.zdim][2].adjoint()*l.links[x][y][(z-1)%l.zdim][0].adjoint()*l.links[x][y][(z-1)%l.zdim][2]);
+                         temp+=(test*l.links[(x+1)%l.xdim][y][z][2]*l.links[x][y][(z+1)%l.zdim][0].adjoint()*l.links[x][y][z][2].adjoint())
+                         +(test*l.links[(x+1)%l.xdim][y][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][modul(z-1,l.zdim)][0].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2]);
                         neu=temp.trace().real();
                         //Akzeptieren oder ablehnen
                         if(exp((-beta/N)*(neu-alt))>=1){
@@ -115,15 +126,18 @@ int main()
                          test=zuf();
                         //Berechne die alten (alt) und neuen (neu) Plaquette-Werte
                         // Alte Werte in xy
-                        temp=(l.links[x][y][z][1]*l.links[x][(y+1)%l.ydim][z][0]*l.links[(x+1)%l.xdim][y][z][1].adjoint()*l.links[x][y][z][0].adjoint())+(l.links[x][y][z][1]*l.links[(x-1)%l.xdim][(y+1)%l.ydim][z][0].adjoint()*l.links[(x-1)%l.xdim][y][z][1].adjoint()*l.links[(x-1)%l.xdim][y][z][0]);
+                        temp=(l.links[x][y][z][1]*l.links[x][(y+1)%l.ydim][z][0]*l.links[(x+1)%l.xdim][y][z][1].adjoint()*l.links[x][y][z][0].adjoint())
+                        +(l.links[x][y][z][1]*l.links[modul(x-1,l.xdim)][(y+1)%l.ydim][z][0].adjoint()*l.links[modul(x-1,l.xdim)][y][z][1].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0]);
                        // in yz
-                       temp+=(l.links[x][y][z][1]*l.links[x][(y+1)%l.ydim][z][2]*l.links[x][y][(z+1)%l.zdim][1].adjoint()*l.links[x][y][z][2].adjoint())+(l.links[x][y][z][1]*l.links[x][(y+1)%l.ydim][(z-1)%l.zdim][2].adjoint()*l.links[x][y][(z-1)%l.zdim][1].adjoint()*l.links[x][y][(z-1)%l.zdim][2]);
+                       temp+=(l.links[x][y][z][1]*l.links[x][(y+1)%l.ydim][z][2]*l.links[x][y][(z+1)%l.zdim][1].adjoint()*l.links[x][y][z][2].adjoint())
+                       +(l.links[x][y][z][1]*l.links[x][(y+1)%l.ydim][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][modul(z-1,l.zdim)][1].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2]);
                         alt=temp.trace().real();
                         // Zu prüfende in xy
-                        temp=(test*l.links[x][(y+1)%l.ydim][z][0]*l.links[(x+1)%l.xdim][y][z][1].adjoint()*l.links[x][y][z][0].adjoint())+(test*l.links[(x-1)%l.xdim][(y+1)%l.ydim][z][0].adjoint()*l.links[(x-1)%l.xdim][y][z][1].adjoint()*l.links[(x-1)%l.xdim][y][z][0]);
+                        temp=(test*l.links[x][(y+1)%l.ydim][z][0]*l.links[(x+1)%l.xdim][y][z][1].adjoint()*l.links[x][y][z][0].adjoint())
+                        +(test*l.links[modul(x-1,l.xdim)][(y+1)%l.ydim][z][0].adjoint()*l.links[modul(x-1,l.xdim)][y][z][1].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0]);
                        // in yz
-                        temp+=(test*l.links[x][(y+1)%l.ydim][z][2]*l.links[x][y][(z+1)%l.zdim][1].adjoint()*l.links[x][y][z][2].adjoint())+(test*l.links[x][(y+1)%l.ydim][(z-1)%l.zdim][2].adjoint()*l.links[x][y][(z-1)%l.zdim][1].adjoint()*l.links[x][y][(z-1)%l.zdim][2]);
-
+                       temp+=(test*l.links[x][(y+1)%l.ydim][z][2]*l.links[x][y][(z+1)%l.zdim][1].adjoint()*l.links[x][y][z][2].adjoint())
+                       +(test*l.links[x][(y+1)%l.ydim][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][modul(z-1,l.zdim)][1].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2]);
                         neu=temp.trace().real();
                         //Akzeptieren oder ablehnen
                         if(exp((-beta/N)*(neu-alt))>=1){
@@ -143,16 +157,19 @@ int main()
                          test=zuf();
                         //Berechne die alten (alt) und neuen (neu) Plaquette-Werte
                         // Alte Werte in xz
-                        temp=(l.links[x][y][z][2]*l.links[x][y][(z+1)%l.zdim][0]*l.links[(x+1)%l.xdim][y][z][2].adjoint()*l.links[x][y][z][0].adjoint())+(l.links[x][y][z][2]*l.links[(x-1)%l.xdim][y][(z+1)%l.zdim][0].adjoint()*l.links[(x-1)%l.xdim][y][z][2].adjoint()*l.links[(x-1)%l.xdim][y][z][0]);
+                        temp=(l.links[x][y][z][2]*l.links[x][y][(z+1)%l.zdim][0]*l.links[(x+1)%l.xdim][y][z][2].adjoint()*l.links[x][y][z][0].adjoint())
+                        +(l.links[x][y][z][2]*l.links[modul(x-1,l.xdim)][y][(z+1)%l.zdim][0].adjoint()*l.links[modul(x-1,l.xdim)][y][z][2].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0]);
                        // in yz
-                      temp+=(l.links[x][y][z][2]*l.links[x][y][(z+1)%l.zdim][1]*l.links[x][(y+1)%l.ydim][z][2].adjoint()*l.links[x][y][z][1].adjoint())+(l.links[x][y][z][2]*l.links[x][(y-1)%l.ydim][(z+1)%l.zdim][1].adjoint()*l.links[x][(y-1)%l.ydim][z][2].adjoint()*l.links[x][(y-1)%l.ydim][z][1]);
+                      temp+=(l.links[x][y][z][2]*l.links[x][y][(z+1)%l.zdim][1]*l.links[x][(y+1)%l.ydim][z][2].adjoint()*l.links[x][y][z][1].adjoint())
+                      +(l.links[x][y][z][2]*l.links[x][modul(y-1,l.ydim)][(z+1)%l.zdim][1].adjoint()*l.links[x][modul(y-1,l.ydim)][z][2].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1]);
                         alt=temp.trace().real();
                         // Zu prüfende in xy
-                         temp=(test*l.links[x][y][(z+1)%l.zdim][0]*l.links[(x+1)%l.xdim][y][z][2].adjoint()*l.links[x][y][z][0].adjoint())+(test*l.links[(x-1)%l.xdim][y][(z+1)%l.zdim][0].adjoint()*l.links[(x-1)%l.xdim][y][z][2].adjoint()*l.links[(x-1)%l.xdim][y][z][0]);
+                         temp=(test*l.links[x][y][(z+1)%l.zdim][0]*l.links[(x+1)%l.xdim][y][z][2].adjoint()*l.links[x][y][z][0].adjoint())
+                        +(test*l.links[modul(x-1,l.xdim)][y][(z+1)%l.zdim][0].adjoint()*l.links[modul(x-1,l.xdim)][y][z][2].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0]);
                        // in yz
-                      temp+=(test*l.links[x][y][(z+1)%l.zdim][1]*l.links[x][(y+1)%l.ydim][z][2].adjoint()*l.links[x][y][z][1].adjoint())+(test*l.links[x][(y-1)%l.ydim][(z+1)%l.zdim][1].adjoint()*l.links[x][(y-1)%l.ydim][z][2].adjoint()*l.links[x][(y-1)%l.ydim][z][1]);
-
-                        neu=temp.trace().real();
+                      temp+=(test*l.links[x][y][(z+1)%l.zdim][1]*l.links[x][(y+1)%l.ydim][z][2].adjoint()*l.links[x][y][z][1].adjoint())
+                      +(test*l.links[x][modul(y-1,l.ydim)][(z+1)%l.zdim][1].adjoint()*l.links[x][modul(y-1,l.ydim)][z][2].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1]);
+                         neu=temp.trace().real();
                         //Akzeptieren oder ablehnen
                         if(exp((-beta/N)*(neu-alt))>=1){
                             l.update(x,y,z,2,test);
