@@ -17,7 +17,7 @@ class lattice
         void update(int xpos, int ypos, int zpos, int direction,Eigen::Matrix<std::complex<double>,2,2> newMatrix);
         double energy(void);
         double plaquette(int x, int y, int z, int dir);
-        Matrix<std::complex<double>,2,2> links[2][3][1][3] ;
+        Matrix<std::complex<double>,2,2> links[5][5][5][3] ;
 
     protected:
 

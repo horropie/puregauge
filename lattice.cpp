@@ -12,9 +12,9 @@ std::uniform_real_distribution<double> uni_real_distr(0.0,1.0);
 
 lattice::lattice()
 {
-xdim= 2;
-ydim= 3;
-zdim= 1;
+xdim= 5;
+ydim= 5;
+zdim= 5;
 
 
 

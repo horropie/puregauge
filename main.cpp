@@ -9,8 +9,9 @@
 #include <fstream>
 using namespace std;
 //definiere Parameter (Anzahl Wdh., Temperatur, Zufallsgenerator)
-static int rep=10;
-double beta= 0.7;
+static int rep=100;
+static int therm=100;
+double beta;
 double N =1.0;
 
 Eigen::Matrix<std::complex<double>,2,2> test;
@@ -64,10 +65,9 @@ Eigen::Matrix<std::complex<double>,2,2> zuf()
 
 int main()
 {
+
     lattice l ;
-     string datei= "Metropolis.txt";
-        f.open(datei,ios::out);
-       f << "O" << endl;
+
 
     // Berechne die Summe der Plaquettes des Gitters, speichere in plaquette
 
@@ -83,8 +83,14 @@ int main()
                   plaquette += (xyplaquettevalue.trace().real() +xzplaquettevalue.trace().real()+yzplaquettevalue.trace().real());
 
             }}}
+            // Für verschiedene Temperaturen
+     for( int t =0;t++;t<=50 )  {
+            beta=1/(t*0.1);
+             string datei= "Metropolis"+to_string(t)+".txt";
+        f.open(datei,ios::out);
+       f << "O" << endl;
             //Beginne Metroplolis
-      for(int i =0; i<rep;i++){
+      for(int i =0; i<rep+therm;i++){
 
           //Gehe linear durchs Gitter
              for(int x = 0; x < l.xdim; x++){
@@ -178,9 +184,10 @@ int main()
 
 
 //Messwert speichern
-
- f <<plaquette<< endl;
+if(i>=therm)
+    f <<plaquette<< endl;
       }
 f.close();
+}
     return 0;
 }
