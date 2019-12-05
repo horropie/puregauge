@@ -1,6 +1,7 @@
 #include <iostream>
+#include <iostream>
 #include "lattice.h"
-#include "lattice.cpp"
+
 #include <Eigen/Dense>
 #include <random>
 #include <vector>
@@ -10,7 +11,7 @@
 using namespace std;
 //definiere Parameter (Anzahl Wdh., Temperatur, Zufallsgenerator)
 static int rep=100;
-static int therm=100;
+static int therm=200;
 double beta;
 double N =1.0;
 
@@ -19,8 +20,7 @@ Eigen::Matrix<std::complex<double>,2,2> temp;
 
 fstream f;
 
-double alt=0.0;
-double neu=0.0;
+double deltaS;
 double p;
 
 
@@ -29,11 +29,11 @@ std::default_random_engine Generator;
 std::uniform_real_distribution<double> uni_real_dist(0.0,1.0);
 
 // Methode zum Erzeugen von Zufallsmatrix
-Eigen::Matrix<std::complex<double>,2,2> zuf()
+ void zuf(Eigen::Matrix<std::complex<double>,2,2>& randm)
 {
-    Eigen::Matrix<std::complex<double>,2,2> randm;
+
     double rand[3];
-	double norm(2.0);
+	double norm=2.0;
 	while(norm>1.0){
      rand[0]=uni_real_dist(Generator);
      rand[1]=uni_real_dist(Generator);
@@ -50,7 +50,7 @@ Eigen::Matrix<std::complex<double>,2,2> zuf()
 	randm(0,1)=std::complex<double>(0.0,sinn*rand[0])+std::complex<double>(sinn*rand[1],0.0);
 	randm(1,1)=conj(randm(0,0));
 	randm(1,0)=-conj(randm(0,1));
-	return randm;
+
 }
  int modul(int x, int mod){
  x=x%mod;
@@ -61,16 +61,48 @@ Eigen::Matrix<std::complex<double>,2,2> zuf()
  }
 
 
+Eigen::Matrix<std::complex<double>,2,2> staple_x(lattice l,int x,int y, int z){
+    Eigen::Matrix<std::complex<double>,2,2> s;
+    //in xy-Richtung
+    s=l.links[(x+1)%l.xdim][y][z][1]*l.links[x][(y+1)%l.ydim][z][0].adjoint()*l.links[x][y][z][1].adjoint();
+    s+=l.links[(x+1)%l.xdim][modul(y-1,l.ydim)][z][1].adjoint()*l.links[x][modul(y-1,l.ydim)][z][0].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1];
+    //in xz Richtung
+    s+=l.links[(x+1)%l.xdim][y][z][2]*l.links[x][y][(z+1)%l.zdim][0].adjoint()*l.links[x][y][z][2].adjoint();
+    s+= l.links[x][y][z][0]*l.links[(x+1)%l.xdim][y][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][(z-1)%l.zdim][0].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2];
+     return s;
+}
+Eigen::Matrix<std::complex<double>,2,2> staple_y(lattice l,int x,int y, int z){
+        Eigen::Matrix<std::complex<double>,2,2> s;
+        //in yx-Richtung
+        s=l.links[x][(y+1)%l.ydim][z][0]*l.links[(x+1)%l.xdim][y][z][1].adjoint()*l.links[x][y][z][0].adjoint();
+        s+=l.links[modul(x-1,l.xdim)][(y+1)%l.ydim][z][0].adjoint()*l.links[modul(x-1,l.xdim)][y][z][1].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0];
+        //in yz Richtung
+        s+=l.links[x][(y+1)%l.ydim][z][2]*l.links[x][y][(z+1)%l.zdim][1].adjoint()*l.links[x][y][z][2].adjoint();
+        s+=(l.links[x][y][z][1]*l.links[x][(y+1)%l.ydim][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][modul(z-1,l.zdim)][1].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2]);
+    return s;
+    }
+
+    Eigen::Matrix<std::complex<double>,2,2> staple_z(lattice l,int x,int y, int z){
+        Eigen::Matrix<std::complex<double>,2,2> s;
+        //in zx-Richtung
+        s=l.links[x][y][(z+1)%l.zdim][0]*l.links[(x+1)%l.xdim][y][z][2].adjoint()*l.links[x][y][z][0].adjoint();
+        s+=l.links[modul(x-1,l.xdim)][y][(z+1)%l.zdim][0].adjoint()*l.links[modul(x-1,l.xdim)][y][z][2].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0];
+        //in zy Richtung
+        s+=l.links[x][y][(z+1)%l.zdim][1]*l.links[x][(y+1)%l.ydim][z][2].adjoint()*l.links[x][y][z][1].adjoint();
+        s+=l.links[x][modul(y-1,l.ydim)][(z+1)%l.zdim][1].adjoint()*l.links[x][modul(y-1,l.ydim)][z][2].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1];
+    return s;
+    }
+
+
+
 
 
 int main()
 {
 
+//Initialisiere Gitter mit heißem Start
     lattice l ;
-
-
-    // Berechne die Summe der Plaquettes des Gitters, speichere in plaquette
-
+// Berechne die Summe der Plaquettes des Gitters, speichere in plaquette
     double plaquette=0.0;
     Eigen::Matrix<std::complex<double>,2,2> xyplaquettevalue, xzplaquettevalue, yzplaquettevalue;
 
@@ -84,110 +116,69 @@ int main()
 
             }}}
             // Für verschiedene Temperaturen
-     for( int t =0;t++;t<=50 )  {
+     for( int t =20;t>19;t-- )  {
             beta=1/(t*0.1);
-             string datei= "Metropolis"+to_string(t)+".txt";
-        f.open(datei,ios::out);
-       f << "O" << endl;
+            //Speicherort und Name der Ausgabedatei
+            // string datei= "Metropolis"+to_string(t)+".txt";
+            string datei="therm.txt";
+            f.open(datei,ios::out);
+            f << "O" << endl;
             //Beginne Metroplolis
-      for(int i =0; i<rep+therm;i++){
+        for(int i =0; i<rep+therm;i++){
 
           //Gehe linear durchs Gitter
              for(int x = 0; x < l.xdim; x++){
                 for (int y = 0; y < l.ydim; y++){
                     for (int z = 0; z < l.zdim; z++){
-            //Erzeuge Zufallsmatrix für x-Richtung
-                        test=zuf();
-                        //Berechne die alten (alt) und neuen (neu) Plaquette-Werte
+
+                    //Erzeuge Zufallsmatrix für x-Richtung
+                        zuf(test);
+                       // cout<<"Spur d. Testmatrix:"<<test.trace()<<endl;
+                        //Berechne die Differenz der alten (alt) und neuen (neu) Plaquette-Werte (neu-alt)
                         // Alte Plaquettes in xy Richtung
-                        temp=(l.links[x][y][z][0]*l.links[(x+1)%l.xdim][y][z][1]*l.links[x][(y+1)%l.ydim][z][0].adjoint()*l.links[x][y][z][1].adjoint())
-                        +(l.links[x][y][z][0]*l.links[(x+1)%l.xdim][modul(y-1,l.ydim)][z][1].adjoint()*l.links[x][modul(y-1,l.ydim)][z][0].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1]);
-                       // Alte Plaquettes in xz
-                        temp+=(l.links[x][y][z][0]*l.links[(x+1)%l.xdim][y][z][2]*l.links[x][y][(z+1)%l.zdim][0].adjoint()*l.links[x][y][z][2].adjoint())
-                        +(l.links[x][y][z][0]*l.links[(x+1)%l.xdim][y][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][(z-1)%l.zdim][0].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2]);
-
-                        alt=temp.trace().real();
-                        //Zu prüfende Plaquettes in xy
-                        temp=(test*l.links[(x+1)%l.xdim][y][z][1]*l.links[x][(y+1)%l.ydim][z][0].adjoint()*l.links[x][y][z][1].adjoint())
-                        +(test*l.links[(x+1)%l.xdim][modul(y-1,l.ydim)][z][1].adjoint()*l.links[x][modul(y-1,l.ydim)][z][0].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1]);
-
-                        //zu prüfende in xz
-                         temp+=(test*l.links[(x+1)%l.xdim][y][z][2]*l.links[x][y][(z+1)%l.zdim][0].adjoint()*l.links[x][y][z][2].adjoint())
-                         +(test*l.links[(x+1)%l.xdim][y][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][modul(z-1,l.zdim)][0].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2]);
-                        neu=temp.trace().real();
+                        deltaS=((-l.links[x][y][z][0]+test)*staple_x(l,x,y,z)).trace().real();
                         //Akzeptieren oder ablehnen
-
-                           p=uni_real_dist(Generator);
-                           if (exp((-beta/N)*(neu-alt))>=p){
-                                l.update(x,y,z,0,test);
-                                plaquette=plaquette-alt+neu;
-
+                        p=uni_real_dist(Generator);
+                        if (exp((-beta/N)*(deltaS))>=p){
+                            l.update(x,y,z,0,test);
+                            plaquette=plaquette+deltaS;
                            }
 
 
-                        // Das Gleiche für y
-                         test=zuf();
-                        //Berechne die alten (alt) und neuen (neu) Plaquette-Werte
+                    // Das Gleiche für y
+                         zuf(test);
+                        // cout<<"Spur d. Testmatrix:"<<test.trace().real()<<endl;
+                        //Berechne die Differenz der alten (alt) und neuen (neu) Plaquette-Werte (neu-alt)
                         // Alte Werte in xy
-                        temp=(l.links[x][y][z][1]*l.links[x][(y+1)%l.ydim][z][0]*l.links[(x+1)%l.xdim][y][z][1].adjoint()*l.links[x][y][z][0].adjoint())
-                        +(l.links[x][y][z][1]*l.links[modul(x-1,l.xdim)][(y+1)%l.ydim][z][0].adjoint()*l.links[modul(x-1,l.xdim)][y][z][1].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0]);
-                       // in yz
-                       temp+=(l.links[x][y][z][1]*l.links[x][(y+1)%l.ydim][z][2]*l.links[x][y][(z+1)%l.zdim][1].adjoint()*l.links[x][y][z][2].adjoint())
-                       +(l.links[x][y][z][1]*l.links[x][(y+1)%l.ydim][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][modul(z-1,l.zdim)][1].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2]);
-                        alt=temp.trace().real();
-                        // Zu prüfende in xy
-                        temp=(test*l.links[x][(y+1)%l.ydim][z][0]*l.links[(x+1)%l.xdim][y][z][1].adjoint()*l.links[x][y][z][0].adjoint())
-                        +(test*l.links[modul(x-1,l.xdim)][(y+1)%l.ydim][z][0].adjoint()*l.links[modul(x-1,l.xdim)][y][z][1].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0]);
-                       // in yz
-                       temp+=(test*l.links[x][(y+1)%l.ydim][z][2]*l.links[x][y][(z+1)%l.zdim][1].adjoint()*l.links[x][y][z][2].adjoint())
-                       +(test*l.links[x][(y+1)%l.ydim][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][modul(z-1,l.zdim)][1].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2]);
-                        neu=temp.trace().real();
-                        //Akzeptieren oder ablehnen
-
-                           p=uni_real_dist(Generator);
-                           if (exp((-beta/N)*(neu-alt))>=p){
-                                l.update(x,y,z,1,test);
-                                plaquette=plaquette-alt+neu;
+                       deltaS=((test-l.links[x][y][z][1])*staple_y(l,x,y,z)).trace().real();
+                       p=uni_real_dist(Generator);
+                       if (exp((-beta/N)*deltaS)>=p){
+                            l.update(x,y,z,1,test);
+                            plaquette=plaquette+deltaS;
 
                            }
 
 
                         // Das Gleiche für z
-                         test=zuf();
+                      zuf(test);
+                     // cout<<"Spur d. Testmatrix:"<<test.trace().real()<<endl;
                         //Berechne die alten (alt) und neuen (neu) Plaquette-Werte
-                        // Alte Werte in xz
-                        temp=(l.links[x][y][z][2]*l.links[x][y][(z+1)%l.zdim][0]*l.links[(x+1)%l.xdim][y][z][2].adjoint()*l.links[x][y][z][0].adjoint())
-                        +(l.links[x][y][z][2]*l.links[modul(x-1,l.xdim)][y][(z+1)%l.zdim][0].adjoint()*l.links[modul(x-1,l.xdim)][y][z][2].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0]);
-                       // in yz
-                      temp+=(l.links[x][y][z][2]*l.links[x][y][(z+1)%l.zdim][1]*l.links[x][(y+1)%l.ydim][z][2].adjoint()*l.links[x][y][z][1].adjoint())
-                      +(l.links[x][y][z][2]*l.links[x][modul(y-1,l.ydim)][(z+1)%l.zdim][1].adjoint()*l.links[x][modul(y-1,l.ydim)][z][2].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1]);
-                        alt=temp.trace().real();
-                        // Zu prüfende in xy
-                         temp=(test*l.links[x][y][(z+1)%l.zdim][0]*l.links[(x+1)%l.xdim][y][z][2].adjoint()*l.links[x][y][z][0].adjoint())
-                        +(test*l.links[modul(x-1,l.xdim)][y][(z+1)%l.zdim][0].adjoint()*l.links[modul(x-1,l.xdim)][y][z][2].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0]);
-                       // in yz
-                      temp+=(test*l.links[x][y][(z+1)%l.zdim][1]*l.links[x][(y+1)%l.ydim][z][2].adjoint()*l.links[x][y][z][1].adjoint())
-                      +(test*l.links[x][modul(y-1,l.ydim)][(z+1)%l.zdim][1].adjoint()*l.links[x][modul(y-1,l.ydim)][z][2].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1]);
-                         neu=temp.trace().real();
-                        //Akzeptieren oder ablehnen
-
-                           p=uni_real_dist(Generator);
-                           if (exp((-beta/N)*(neu-alt))>=p){
-                                l.update(x,y,z,2,test);
-                                plaquette=plaquette-alt+neu;
+                      deltaS=((test-l.links[x][y][z][2])*staple_z(l,x,y,z)).trace().real();
+                       // Akzeptieren?
+                       p=uni_real_dist(Generator);
+                       if (exp((-beta/N)*deltaS)>=p){
+                            l.update(x,y,z,2,test);
+                            plaquette=plaquette+deltaS;
 
                            }
 
+            }}}
+    //Messwert speichern
+    if(i>=therm)
+        f <<plaquette<< endl;
+    }
 
-
-                    }}}
-
-
-//Messwert speichern
-if(i>=therm)
-    f <<plaquette<< endl;
-      }
 f.close();
-}
-    return 0;
+    }
+return 0;
 }
