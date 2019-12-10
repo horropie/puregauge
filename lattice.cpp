@@ -1,9 +1,9 @@
 #include "lattice.h"
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <random>
 #include <vector>
 #include <complex>
-#include <boost/math/constants/constants.hpp>
+//#include <boost/math/constants/constants.hpp>
 
 using namespace std;
 
