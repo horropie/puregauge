@@ -15,24 +15,25 @@ lattice::lattice()
 xdim= 5;
 ydim= 5;
 zdim= 5;
+tdim= 20;
 
 
 
 
+    for(int t =0;t<tdim;t++){
+        for(int i =0;i<xdim;i++){
+            for(int j =0;j<ydim;j++){
+                for(int k=0;k<zdim;k++){
 
-     for(int i =0;i<xdim;i++){
-             for(int j =0;j<ydim;j++){
-                    for(int k=0;k<zdim;k++){
+                    links[i][j][k][0][t]=rand();
+                    links[i][j][k][1][t]=rand();
+                    links[i][j][k][2][t]=rand();
+                }
+            }
 
-                        links[i][j][k][0]=rand();
-                        links[i][j][k][1]=rand();
-                        links[i][j][k][2]=rand();
-                        }
+        }
 
-
-             }
-
-     }
+    }    
 
 }
 
@@ -40,9 +41,9 @@ lattice::~lattice()
 {
     //dtor
 }
-void lattice::update(int xpos, int ypos, int zpos, int direction, Eigen::Matrix<std::complex<double>,2,2> newMatrix)
+void lattice::update(int xpos, int ypos, int zpos, int direction, int time, Eigen::Matrix<std::complex<double>,2,2> newMatrix)
 {
-   links[xpos][ypos][zpos][direction]=newMatrix;
+   links[xpos][ypos][zpos][direction][time]=newMatrix;
 }
 Eigen::Matrix<std::complex<double>,2,2> lattice::rand()
 {
