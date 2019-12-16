@@ -23,6 +23,8 @@ fstream f;
 
 double deltaS;
 double p;
+double polyakovLine;
+double polyakovLineSum;
 
 
 
@@ -178,7 +180,24 @@ int main()
 
                         //     }
 
+
+
             }}}
+
+    //Polyakov Line
+    for(int x = 0; x < l.xdim; x++){
+      for (int y = 0; y < l.ydim; y++){
+        for (int z = 0; z < 1; z++){
+          for (int t = l.tdim; t = 0; t--){
+
+              cout << (l.links[x][y][z][0][t]).trace().real() << endl;
+              polyakovLine *= (l.links[x][y][z][0][t]).trace().real();
+              }
+
+              polyakovLineSum += polyakovLine;
+
+          }}}
+    cout << polyakovLineSum << endl;
             
     //Messwert speichern
     if(i>=therm)
