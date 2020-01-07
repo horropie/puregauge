@@ -66,13 +66,15 @@ int modul(int x, int mod){
 
 
 Eigen::Matrix<std::complex<double>,2,2> staple_x(lattice l,int x,int y, int z, int t){
+
     Eigen::Matrix<std::complex<double>,2,2> s;
     //in xy-Richtung
     s=l.links[(x+1)%l.xdim][y][z][1][t]*l.links[x][(y+1)%l.ydim][z][0][t].adjoint()*l.links[x][y][z][1][t].adjoint();
     s+=l.links[(x+1)%l.xdim][modul(y-1,l.ydim)][z][1][t].adjoint()*l.links[x][modul(y-1,l.ydim)][z][0][t].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1][t];
     //in xz Richtung
-    //s+=l.links[(x+1)%l.xdim][y][z][2]*l.links[x][y][(z+1)%l.zdim][0].adjoint()*l.links[x][y][z][2].adjoint();
-    //s+= l.links[x][y][z][0]*l.links[(x+1)%l.xdim][y][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][(z-1)%l.zdim][0].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2];
+  s+=l.links[(x+1)%l.xdim][y][z][2][t]*l.links[x][y][(z+1)%l.zdim][0][t].adjoint()*l.links[x][y][z][2][t].adjoint();
+      s+= l.links[x][y][z][0][t]*l.links[(x+1)%l.xdim][y][modul(z-1,l.zdim)][2][t].adjoint()*l.links[x][y][modul((z-1),l.zdim)][0][t].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2][t];
+
      return s;
 }
 Eigen::Matrix<std::complex<double>,2,2> staple_y(lattice l,int x,int y, int z, int t){
@@ -81,20 +83,37 @@ Eigen::Matrix<std::complex<double>,2,2> staple_y(lattice l,int x,int y, int z, i
         s=l.links[x][(y+1)%l.ydim][z][0][t]*l.links[(x+1)%l.xdim][y][z][1][t].adjoint()*l.links[x][y][z][0][t].adjoint();
         s+=l.links[modul(x-1,l.xdim)][(y+1)%l.ydim][z][0][t].adjoint()*l.links[modul(x-1,l.xdim)][y][z][1][t].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0][t];
         //in yz Richtung
-        //s+=l.links[x][(y+1)%l.ydim][z][2]*l.links[x][y][(z+1)%l.zdim][1].adjoint()*l.links[x][y][z][2].adjoint();
-        //s+=(l.links[x][y][z][1]*l.links[x][(y+1)%l.ydim][modul(z-1,l.zdim)][2].adjoint()*l.links[x][y][modul(z-1,l.zdim)][1].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2]);
+        s+=l.links[x][(y+1)%l.ydim][z][2][t]*l.links[x][y][(z+1)%l.zdim][1][t].adjoint()*l.links[x][y][z][2][t].adjoint();
+        s+=(l.links[x][y][z][1][t]*l.links[x][(y+1)%l.ydim][modul(z-1,l.zdim)][2][t].adjoint()*l.links[x][y][modul(z-1,l.zdim)][1][t].adjoint()*l.links[x][y][modul(z-1,l.zdim)][2][t]);
     return s;
     }
 
 Eigen::Matrix<std::complex<double>,2,2> staple_z(lattice l,int x,int y, int z, int t){
         Eigen::Matrix<std::complex<double>,2,2> s;
         //in zx-Richtung
-        //s=l.links[x][y][(z+1)%l.zdim][0]*l.links[(x+1)%l.xdim][y][z][2].adjoint()*l.links[x][y][z][0].adjoint();
-        //s+=l.links[modul(x-1,l.xdim)][y][(z+1)%l.zdim][0].adjoint()*l.links[modul(x-1,l.xdim)][y][z][2].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0];
+        s=l.links[x][y][(z+1)%l.zdim][0][t]*l.links[(x+1)%l.xdim][y][z][2][t].adjoint()*l.links[x][y][z][0][t].adjoint();
+        s+=l.links[modul(x-1,l.xdim)][y][(z+1)%l.zdim][0][t].adjoint()*l.links[modul(x-1,l.xdim)][y][z][2][t].adjoint()*l.links[modul(x-1,l.xdim)][y][z][0][t];
         //in zy Richtung
-        //s+=l.links[x][y][(z+1)%l.zdim][1]*l.links[x][(y+1)%l.ydim][z][2].adjoint()*l.links[x][y][z][1].adjoint();
-        //s+=l.links[x][modul(y-1,l.ydim)][(z+1)%l.zdim][1].adjoint()*l.links[x][modul(y-1,l.ydim)][z][2].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1];
+        s+=l.links[x][y][(z+1)%l.zdim][1][t]*l.links[x][(y+1)%l.ydim][z][2][t].adjoint()*l.links[x][y][z][1][t].adjoint();
+        s+=l.links[x][modul(y-1,l.ydim)][(z+1)%l.zdim][1][t].adjoint()*l.links[x][modul(y-1,l.ydim)][z][2][t].adjoint()*l.links[x][modul(y-1,l.ydim)][z][1][t];
     return s;
+}
+
+double action(lattice l){
+    Eigen::Matrix<std::complex<double>,2,2> xyplaquettevalue, xzplaquettevalue, yzplaquettevalue;
+    double O=0.0;
+   for (int t = 0; t<l.tdim; t++){
+      for(int x = 0; x < l.xdim; x++){
+        for (int y = 0; y < l.ydim; y++){
+          for (int z = 0; z < 1; z++){
+                  xyplaquettevalue = l.links[x][y][z][1][t].adjoint() * l.links[x][modul(y+1,l.ydim)][z][0][t].adjoint() * l.links[(x+1)%l.xdim][y][z][1][t] * l.links[x][y][z][0][t];
+                  xzplaquettevalue = l.links[x][y][z][2][t].adjoint() * l.links[x][y][(z+1)%l.zdim][0][t].adjoint() * l.links[(x+1)%l.xdim][y][z][2][t] * l.links[x][y][z][0][t];
+                  yzplaquettevalue = l.links[x][y][z][2][t].adjoint() * l.links[x][y][(z+1)%l.zdim][1][t].adjoint() * l.links[x][(y+1)%l.ydim][z][2][t] * l.links[x][y][z][1][t];
+                  O += (xyplaquettevalue.trace().real()+xzplaquettevalue.trace().real()+yzplaquettevalue.trace().real());
+
+            }}}}
+            //O=O/(2*6*6*6*4);
+            return O;
 }
 
 
@@ -108,35 +127,22 @@ int main()
     lattice l ;
     // Berechne die Summe der Plaquettes des Gitters, speichere in plaquette
     double plaquette=0.0;
-    Eigen::Matrix<std::complex<double>,2,2> xyplaquettevalue, xzplaquettevalue, yzplaquettevalue;
-
-    for (int t = l.tdim; t>l.tdim-1; t--){
-      for(int x = 0; x < l.xdim; x++){
-        for (int y = 0; y < l.ydim; y++){
-          for (int z = 0; z < 1; z++){
-                  xyplaquettevalue = l.links[x][y][z][1][t].adjoint() * l.links[x][modul(y+1,l.ydim)][z][0][t].adjoint() * l.links[(x+1)%l.xdim][y][z][1][t] * l.links[x][y][z][0][t];
-                  //xzplaquettevalue = l.links[x][y][z][2].adjoint() * l.links[x][y][(z+1)%l.zdim][0].adjoint() * l.links[(x+1)%l.xdim][y][z][2] * l.links[x][y][z][0];
-                  //yzplaquettevalue = l.links[x][y][z][2].adjoint() * l.links[x][y][(z+1)%l.zdim][1].adjoint() * l.links[x][(y+1)%l.ydim][z][2] * l.links[x][y][z][1];
-                  plaquette += (xyplaquettevalue.trace().real()); //+xzplaquettevalue.trace().real()+yzplaquettevalue.trace().real());
-
-            }}}}
-
-    // Für verschiedene Temperaturen
-    for( int t = l.tdim;t>0;t-- ){
-            beta=1/(t*0.1);
+     beta=1.0;
             //Speicherort und Name der Ausgabedatei
             // string datei= "Metropolis"+to_string(t)+".txt";
-            string datei="therm.txt";
+            string datei="test.txt";
             f.open(datei,ios::out);
-            f << "O" << endl;
+            f << "O; action; Polyakov" << endl;
 
         //Beginne Metropolis
         for(int i =0; i<rep+therm;i++){
 
             //Gehe linear durchs Gitter
+        for( int t = l.tdim-1;t>=0;t-- ){
             for(int x = 0; x < l.xdim; x++){
                 for (int y = 0; y < l.ydim; y++){
                     for (int z = 0; z < 1; z++){
+
 
                         //Erzeuge Zufallsmatrix für x-Richtung
                         zuf(test);
@@ -150,7 +156,7 @@ int main()
                         p=uni_real_dist(Generator);
                         if (exp((-beta/N)*(deltaS))>=p){
                             l.update(x,y,z,0,t,test);
-                            plaquette=plaquette+deltaS;
+                            plaquette=plaquette+(deltaS);
                            }
 
 
@@ -163,48 +169,53 @@ int main()
                         p=uni_real_dist(Generator);
                         if (exp((-beta/N)*deltaS)>=p){
                             l.update(x,y,z,1,t,test);
-                            plaquette=plaquette+deltaS;
+                             plaquette=plaquette+(deltaS);
 
                            }
 
 
                         // Das Gleiche für z
-                        // zuf(test);
+                         zuf(test);
                         // cout<<"Spur d. Testmatrix:"<<test.trace().real()<<endl;
                         //Berechne die alten (alt) und neuen (neu) Plaquette-Werte
-                        //deltaS=((test-l.links[x][y][z][2][t])*staple_z(l,x,y,z,t)).trace().real();
-                        //p=uni_real_dist(Generator);
-                        //if (exp((-beta/N)*deltaS)>=p){
-                        //    l.update(x,y,z,2,t,test);
-                        //      plaquette=plaquette+deltaS;
+                        deltaS=((test-l.links[x][y][z][2][t])*staple_z(l,x,y,z,t)).trace().real();
+                        p=uni_real_dist(Generator);
+                        if (exp((-beta/N)*deltaS)>=p){
+                            l.update(x,y,z,2,t,test);
+                             plaquette=plaquette+(deltaS);
 
-                        //     }
+                            }
 
 
 
-            }}}
+            }}}}
 
     //Polyakov Line
     for(int x = 0; x < l.xdim; x++){
       for (int y = 0; y < l.ydim; y++){
         for (int z = 0; z < 1; z++){
-          for (int t = l.tdim; t = 0; t--){
+          for (int t = l.tdim-1; t >= 0; t--){
 
-              cout << (l.links[x][y][z][0][t]).trace().real() << endl;
-              polyakovLine *= (l.links[x][y][z][0][t]).trace().real();
+             // cout << (l.links[x][y][z][0][t]).trace().real() << endl;
+              polyakovLine *= l.links[x][y][z][0][t];
               }
+              //Auf Identität setzen und Spur rausziehen
 
-              polyakovLineSum += polyakovLine;
+              polyakovLineSum += polyakovLine.trace().real();
+              polyakovLine.setIdentity();
 
           }}}
-    cout << polyakovLineSum << endl;
-            
+
+    //cout <<"Polyakov:"<< polyakovLineSum << endl;
+
     //Messwert speichern
     if(i>=therm)
-        f <<plaquette<< endl;
-    }
+        f <<plaquette<<" ; "<< action(l)<<" ; "<<polyakovLineSum << endl;
+     polyakovLineSum=0.0;
+     }
 
 f.close();
-    }
+//cout<<l.links[0][0][0][0][0]<<endl;
+
 return 0;
 }
